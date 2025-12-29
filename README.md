@@ -18,70 +18,105 @@ A custom [OpenAPI Generator](https://openapi-generator.tech/) for generating mod
 
 ### Models
 ```typescript
-export interface User {
+export interface Course {
     readonly id: number;
-    readonly login: string;
-    readonly email?: string;
-    readonly firstName?: string;
-    readonly lastName?: string;
+    readonly title: string;
+    readonly shortName: string;
+    readonly description?: string;
+    readonly startDate?: string;
+    readonly endDate?: string;
+    readonly semester?: string;
+    readonly testCourse?: boolean;
+    readonly onlineCourse?: boolean;
+    readonly maxComplaints?: number;
+    readonly maxTeamComplaints?: number;
+    readonly maxComplaintTimeDays?: number;
+    readonly studentGroupName?: string;
+    readonly teachingAssistantGroupName?: string;
+    readonly editorGroupName?: string;
+    readonly instructorGroupName?: string;
+    readonly color?: string;
+    readonly courseIcon?: string;
 }
 
-export interface UserCreate {
-    login: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
+export interface CourseCreate {
+    title: string;
+    shortName: string;
+    description?: string;
+    startDate?: string;
+    endDate?: string;
+    semester?: string;
+    testCourse?: boolean;
+    onlineCourse?: boolean;
+    color?: string;
+}
+
+export interface CourseUpdate {
+    title?: string;
+    description?: string;
+    startDate?: string;
+    endDate?: string;
+    semester?: string;
+    color?: string;
 }
 ```
 
 ### API Service (Mutations)
 ```typescript
 @Injectable({ providedIn: 'root' })
-export class UserApi {
+export class CourseApi {
     private readonly http = inject(HttpClient);
+    private readonly basePath = '/api';
 
-    createUser(body: UserCreate): Observable<User> {
-        return this.http.post<User>(`/api/users`, body);
+    createCourse(courseCreate: CourseCreate): Observable<Course> {
+        const url = `${this.basePath}/courses`;
+        return this.http.post<Course>(url, courseCreate);
     }
 
-    updateUser(userId: number, body: UserUpdate): Observable<User> {
-        return this.http.put<User>(`/api/users/${userId}`, body);
+    deleteCourse(courseId: number): Observable<void> {
+        const url = `${this.basePath}/courses/$${courseId}`;
+        return this.http.delete(url);
     }
 
-    deleteUser(userId: number): Observable<void> {
-        return this.http.delete<void>(`/api/users/${userId}`);
+    updateCourse(courseId: number, courseUpdate: CourseUpdate): Observable<Course> {
+        const url = `${this.basePath}/courses/$${courseId}`;
+        return this.http.put<Course>(url, courseUpdate);
     }
 }
 ```
 
 ### Resources (GET with httpResource)
 ```typescript
-export interface GetAllUsersParams {
-    search?: string;
+const BASE_PATH = '/api';
+
+export interface GetAllCoursesParams {
+    onlyActive?: boolean;
     page?: number;
     size?: number;
 }
 
-export function getAllUsersResource(
-    params?: Signal<GetAllUsersParams>
-): HttpResourceRef<User[] | undefined> {
-    return httpResource<User[]>(() => {
-        const p = params?.() ?? {};
+export function getAllCoursesResource(params?: Signal<GetAllCoursesParams>): HttpResourceRef<Array<Course> | undefined> {
+    return httpResource<Array<Course>>(() => {
+        const queryParams = params?.() ?? {};
         const searchParams = new URLSearchParams();
-        if (p.search) searchParams.set('search', p.search);
-        if (p.page !== undefined) searchParams.set('page', String(p.page));
-        if (p.size !== undefined) searchParams.set('size', String(p.size));
+        if (queryParams.onlyActive !== undefined) {
+            searchParams.set('onlyActive', String(queryParams.onlyActive));
+        }
+        if (queryParams.page !== undefined && queryParams.page !== null) {
+            searchParams.set('page', String(queryParams.page));
+        }
+        if (queryParams.size !== undefined && queryParams.size !== null) {
+            searchParams.set('size', String(queryParams.size));
+        }
         const query = searchParams.toString();
-        return `/api/users${query ? `?${query}` : ''}`;
+        return `${BASE_PATH}/courses${query ? `?${query}` : ''}`;
     });
 }
 
-export function getUserResource(
-    userId: Signal<number> | number
-): HttpResourceRef<User | undefined> {
-    return httpResource<User>(() => {
-        const userIdValue = typeof userId === 'function' ? userId() : userId;
-        return `/api/users/${userIdValue}`;
+export function getCourseResource(courseId: Signal<number> | number): HttpResourceRef<Course | undefined> {
+    return httpResource<Course>(() => {
+        const courseIdValue = typeof courseId === 'function' ? courseId() : courseId;
+        return `${BASE_PATH}/courses/${courseIdValue}`;
     });
 }
 ```
@@ -147,7 +182,7 @@ openApiGenerate {
 <plugin>
     <groupId>org.openapitools</groupId>
     <artifactId>openapi-generator-maven-plugin</artifactId>
-    <version>7.10.0</version>
+    <version>7.18.0</version>
     <executions>
         <execution>
             <goals>
@@ -183,7 +218,7 @@ openApiGenerate {
 wget https://github.com/ls1intum/openapi-generator-angular21/releases/download/v1.0.0/openapi-generator-angular21-1.0.0.jar
 
 # Generate code
-java -cp openapi-generator-angular21-1.0.0.jar:openapi-generator-cli-7.10.0.jar \
+java -cp openapi-generator-angular21-1.0.0.jar:openapi-generator-cli-7.18.0.jar \
     org.openapitools.codegen.OpenAPIGenerator generate \
     -g angular21 \
     -i openapi.yaml \
@@ -192,12 +227,12 @@ java -cp openapi-generator-angular21-1.0.0.jar:openapi-generator-cli-7.10.0.jar 
 
 ## Configuration Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `useHttpResource` | `true` | Use `httpResource` for GET requests instead of `HttpClient` |
-| `useInjectFunction` | `true` | Use `inject()` function instead of constructor injection |
-| `separateResources` | `true` | Generate separate `*-resources.ts` files for GET operations |
-| `readonlyModels` | `true` | Add `readonly` modifier to response model properties |
+| Option              | Default | Description                                                 |
+|---------------------|---------|-------------------------------------------------------------|
+| `useHttpResource`   | `true`  | Use `httpResource` for GET requests instead of `HttpClient` |
+| `useInjectFunction` | `true`  | Use `inject()` function instead of constructor injection    |
+| `separateResources` | `true`  | Generate separate `*-resources.ts` files for GET operations |
+| `readonlyModels`    | `true`  | Add `readonly` modifier to response model properties        |
 
 ## Usage in Components
 
@@ -205,60 +240,72 @@ java -cp openapi-generator-angular21-1.0.0.jar:openapi-generator-cli-7.10.0.jar 
 import { Component, computed, signal, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { 
-    UserApi, 
-    getUserResource, 
-    getAllUsersResource,
-    User, 
-    UserCreate 
+    CourseApi,
+    getCourseResource, 
+    getAllCoursesResource,
+    Course, 
+    CourseCreate,
+    CourseUpdate 
 } from './generated';
 
 @Component({
-    selector: 'app-user-list',
+    selector: 'app-course-list',
     standalone: true,
     template: `
-        @if (users.isLoading()) {
+        @if (courses.isLoading()) {
             <div class="spinner">Loading...</div>
         }
 
-        @if (users.hasValue()) {
-            @for (user of users.value(); track user.id) {
-                <div (click)="selectUser(user.id)">
-                    {{ user.firstName }} {{ user.lastName }}
+        @if (courses.hasValue()) {
+            @for (course of courses.value() ?? []; track course.id) {
+                <div (click)="selectCourse(course.id)">
+                    {{ course.title }}
                 </div>
             }
         }
 
-        @if (selectedUser.hasValue()) {
+        @if (selectedCourse.hasValue()) {
             <div class="details">
-                Selected: {{ selectedUser.value()?.email }}
+                Selected: {{ selectedCourse.value()?.shortName }}
             </div>
         }
     `
 })
-export class UserListComponent {
-    private readonly userApi = inject(UserApi);
+export class CourseListComponent {
+    private readonly courseApi = inject(CourseApi);
 
     // Reactive state
     protected readonly page = signal(0);
-    protected readonly selectedUserId = signal<number | undefined>(undefined);
+    protected readonly selectedCourseId = signal<number | undefined>(undefined);
 
     // Resources - automatically refetch when signals change
-    protected readonly users = getAllUsersResource(
-        computed(() => ({ page: this.page(), size: 20 }))
+    protected readonly courses = getAllCoursesResource(
+        computed(() => ({ page: this.page(), size: 20, onlyActive: true }))
     );
 
-    protected readonly selectedUser = getUserResource(
-        computed(() => this.selectedUserId() ?? -1)
+    protected readonly selectedCourse = getCourseResource(
+        computed(() => this.selectedCourseId() ?? -1)
     );
 
-    selectUser(id: number): void {
-        this.selectedUserId.set(id);
+    selectCourse(id: number): void {
+        this.selectedCourseId.set(id);
     }
 
-    async createUser(data: UserCreate): Promise<void> {
-        const created = await firstValueFrom(this.userApi.createUser(data));
+    async createCourse(data: CourseCreate): Promise<void> {
+        const created = await firstValueFrom(this.courseApi.createCourse(data));
         console.log('Created:', created);
-        this.users.reload(); // Refresh the list
+        this.courses.reload(); // Refresh the list
+    }
+
+    async updateCourse(courseId: number, data: CourseUpdate): Promise<void> {
+        const updated = await firstValueFrom(this.courseApi.updateCourse(courseId, data));
+        console.log('Updated:', updated);
+        this.courses.reload(); // Refresh the list
+    }
+
+    async deleteCourse(courseId: number): Promise<void> {
+        await firstValueFrom(this.courseApi.deleteCourse(courseId));
+        this.courses.reload(); // Refresh the list
     }
 }
 ```

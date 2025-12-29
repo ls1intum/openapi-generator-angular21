@@ -10,6 +10,7 @@ import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationMap;
 import org.openapitools.codegen.model.OperationsMap;
+import org.openapitools.codegen.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +68,7 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
         modelTemplateFiles.clear();
         modelTemplateFiles.put("model.mustache", ".ts");
 
+        apiNameSuffix = "Api";
         apiTemplateFiles.clear();
         apiTemplateFiles.put("api-service.mustache", "-api.ts");
 
@@ -151,6 +153,11 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
     public String toApiFilename(String name) {
         // Use kebab-case for API files
         return toKebabCase(name);
+    }
+
+    @Override
+    public String toApiName(String name) {
+        return StringUtils.camelize(name) + "Api";
     }
 
     @Override
