@@ -1,0 +1,838 @@
+openapi: 3.0.3
+info:
+  title: Artemis API
+  description: Sample API specification for the Artemis learning platform
+  version: 8.6.4
+
+servers:
+  - url: /api
+
+tags:
+  - name: course
+    description: Course management
+  - name: exercise
+    description: Exercise management
+  - name: user
+    description: User management
+  - name: participation
+    description: Student participation
+
+paths:
+  /courses:
+    get:
+      tags:
+        - course
+      operationId: getAllCourses
+      summary: Get all courses
+      parameters:
+        - name: onlyActive
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+    post:
+      tags:
+        - course
+      operationId: createCourse
+      summary: Create a new course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreate'
+      responses:
+        '201':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+
+  /courses/{courseId}:
+    get:
+      tags:
+        - course
+      operationId: getCourse
+      summary: Get a course by ID
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Course details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Course not found
+    put:
+      tags:
+        - course
+      operationId: updateCourse
+      summary: Update a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdate'
+      responses:
+        '200':
+          description: Course updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+    delete:
+      tags:
+        - course
+      operationId: deleteCourse
+      summary: Delete a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Course deleted
+
+  /courses/{courseId}/exercises:
+    get:
+      tags:
+        - exercise
+      operationId: getExercisesForCourse
+      summary: Get all exercises for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ExerciseType'
+      responses:
+        '200':
+          description: List of exercises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+    post:
+      tags:
+        - exercise
+      operationId: createExercise
+      summary: Create a new exercise
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExerciseCreate'
+      responses:
+        '201':
+          description: Exercise created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+
+  /exercises/{exerciseId}:
+    get:
+      tags:
+        - exercise
+      operationId: getExercise
+      summary: Get an exercise by ID
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Exercise details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+    put:
+      tags:
+        - exercise
+      operationId: updateExercise
+      summary: Update an exercise
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExerciseUpdate'
+      responses:
+        '200':
+          description: Exercise updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+    delete:
+      tags:
+        - exercise
+      operationId: deleteExercise
+      summary: Delete an exercise
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Exercise deleted
+
+  /exercises/{exerciseId}/participations:
+    get:
+      tags:
+        - participation
+      operationId: getParticipations
+      summary: Get all participations for an exercise
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: withSubmissions
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: List of participations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participation'
+    post:
+      tags:
+        - participation
+      operationId: startParticipation
+      summary: Start participation for an exercise
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '201':
+          description: Participation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Participation'
+
+  /participations/{participationId}:
+    get:
+      tags:
+        - participation
+      operationId: getParticipation
+      summary: Get a participation by ID
+      parameters:
+        - name: participationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Participation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Participation'
+
+  /participations/{participationId}/submissions:
+    post:
+      tags:
+        - participation
+      operationId: createSubmission
+      summary: Submit a solution
+      parameters:
+        - name: participationId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+      responses:
+        '201':
+          description: Submission created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+
+  /users:
+    get:
+      tags:
+        - user
+      operationId: getAllUsers
+      summary: Get all users
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [id, login, email, firstName, lastName]
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedUsers'
+
+  /users/{userId}:
+    get:
+      tags:
+        - user
+      operationId: getUser
+      summary: Get a user by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      tags:
+        - user
+      operationId: updateUser
+      summary: Update a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+components:
+  schemas:
+    Course:
+      type: object
+      required:
+        - id
+        - title
+        - shortName
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        shortName:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        semester:
+          type: string
+        testCourse:
+          type: boolean
+          default: false
+        onlineCourse:
+          type: boolean
+          default: false
+        maxComplaints:
+          type: integer
+        maxTeamComplaints:
+          type: integer
+        maxComplaintTimeDays:
+          type: integer
+        studentGroupName:
+          type: string
+        teachingAssistantGroupName:
+          type: string
+        editorGroupName:
+          type: string
+        instructorGroupName:
+          type: string
+        color:
+          type: string
+        courseIcon:
+          type: string
+
+    CourseCreate:
+      type: object
+      required:
+        - title
+        - shortName
+      properties:
+        title:
+          type: string
+        shortName:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        semester:
+          type: string
+        testCourse:
+          type: boolean
+        onlineCourse:
+          type: boolean
+        color:
+          type: string
+
+    CourseUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        semester:
+          type: string
+        color:
+          type: string
+
+    Exercise:
+      type: object
+      required:
+        - id
+        - title
+        - type
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        shortName:
+          type: string
+        type:
+          $ref: '#/components/schemas/ExerciseType'
+        maxPoints:
+          type: number
+          format: double
+        bonusPoints:
+          type: number
+          format: double
+        releaseDate:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+        assessmentDueDate:
+          type: string
+          format: date-time
+        difficulty:
+          $ref: '#/components/schemas/DifficultyLevel'
+        mode:
+          $ref: '#/components/schemas/ExerciseMode'
+        problemStatement:
+          type: string
+        gradingInstructions:
+          type: string
+        includedInOverallScore:
+          $ref: '#/components/schemas/IncludedInOverallScore'
+        categories:
+          type: array
+          items:
+            type: string
+        course:
+          $ref: '#/components/schemas/Course'
+
+    ExerciseCreate:
+      type: object
+      required:
+        - title
+        - type
+        - maxPoints
+      properties:
+        title:
+          type: string
+        shortName:
+          type: string
+        type:
+          $ref: '#/components/schemas/ExerciseType'
+        maxPoints:
+          type: number
+          format: double
+        bonusPoints:
+          type: number
+          format: double
+        releaseDate:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+        difficulty:
+          $ref: '#/components/schemas/DifficultyLevel'
+        mode:
+          $ref: '#/components/schemas/ExerciseMode'
+        problemStatement:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+
+    ExerciseUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        maxPoints:
+          type: number
+          format: double
+        bonusPoints:
+          type: number
+          format: double
+        releaseDate:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+        problemStatement:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+
+    ExerciseType:
+      type: string
+      enum:
+        - PROGRAMMING
+        - MODELING
+        - QUIZ
+        - TEXT
+        - FILE_UPLOAD
+
+    DifficultyLevel:
+      type: string
+      enum:
+        - EASY
+        - MEDIUM
+        - HARD
+
+    ExerciseMode:
+      type: string
+      enum:
+        - INDIVIDUAL
+        - TEAM
+
+    IncludedInOverallScore:
+      type: string
+      enum:
+        - INCLUDED_COMPLETELY
+        - INCLUDED_AS_BONUS
+        - NOT_INCLUDED
+
+    Participation:
+      type: object
+      required:
+        - id
+        - initializationState
+      properties:
+        id:
+          type: integer
+          format: int64
+        initializationState:
+          $ref: '#/components/schemas/InitializationState'
+        initializationDate:
+          type: string
+          format: date-time
+        individualDueDate:
+          type: string
+          format: date-time
+        testRun:
+          type: boolean
+        student:
+          $ref: '#/components/schemas/User'
+        exercise:
+          $ref: '#/components/schemas/Exercise'
+        submissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Result'
+
+    InitializationState:
+      type: string
+      enum:
+        - UNINITIALIZED
+        - REPO_COPIED
+        - REPO_CONFIGURED
+        - BUILD_PLAN_COPIED
+        - BUILD_PLAN_CONFIGURED
+        - INITIALIZED
+        - FINISHED
+        - INACTIVE
+
+    Submission:
+      type: object
+      required:
+        - id
+        - submitted
+      properties:
+        id:
+          type: integer
+          format: int64
+        submitted:
+          type: boolean
+        submissionDate:
+          type: string
+          format: date-time
+        type:
+          $ref: '#/components/schemas/SubmissionType'
+        exampleSubmission:
+          type: boolean
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Result'
+
+    SubmissionCreate:
+      type: object
+      properties:
+        submitted:
+          type: boolean
+          default: true
+        type:
+          $ref: '#/components/schemas/SubmissionType'
+
+    SubmissionType:
+      type: string
+      enum:
+        - MANUAL
+        - TIMEOUT
+        - INSTRUCTOR
+        - EXTERNAL
+        - TEST
+        - ILLEGAL
+
+    Result:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        completionDate:
+          type: string
+          format: date-time
+        successful:
+          type: boolean
+        score:
+          type: number
+          format: double
+        rated:
+          type: boolean
+        assessmentType:
+          $ref: '#/components/schemas/AssessmentType'
+
+    AssessmentType:
+      type: string
+      enum:
+        - AUTOMATIC
+        - SEMI_AUTOMATIC
+        - MANUAL
+
+    User:
+      type: object
+      required:
+        - id
+        - login
+      properties:
+        id:
+          type: integer
+          format: int64
+        login:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        activated:
+          type: boolean
+        langKey:
+          type: string
+        imageUrl:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedDate:
+          type: string
+          format: date-time
+        groups:
+          type: array
+          items:
+            type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        langKey:
+          type: string
+        activated:
+          type: boolean
+
+    PagedUsers:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
