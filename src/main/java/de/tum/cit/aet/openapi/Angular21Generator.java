@@ -386,7 +386,7 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
             } else if (useSignalValue && signalValueByParamName.containsKey(valueVar)) {
                 replacementVar = signalValueByParamName.get(valueVar);
             }
-            String replacement = "${" + replacementVar + "}";
+            String replacement = "{" + replacementVar + "}";
             matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(buffer);
