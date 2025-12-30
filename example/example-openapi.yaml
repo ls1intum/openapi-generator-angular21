@@ -1,8 +1,8 @@
-openapi: 3.0.3
+openapi: 3.1.1
 info:
   title: Artemis API
   description: Sample API specification for the Artemis learning platform
-  version: 8.6.4
+  version: 8.7.1
 
 servers:
   - url: /api
@@ -16,6 +16,10 @@ tags:
     description: User management
   - name: participation
     description: Student participation
+  - name: report
+    description: Reporting endpoints
+  - name: admin
+    description: Administrative operations
 
 paths:
   /courses:
@@ -424,6 +428,84 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
+  /reports/summary:
+    get:
+      tags:
+        - report
+      operationId: getReportSummary
+      summary: Get a summary report
+      responses:
+        '200':
+          description: Report summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+
+  /admin/users:
+    post:
+      tags:
+        - admin
+      operationId: createAdminUser
+      summary: Create a user through admin APIs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /admin/users/{userId}:
+    put:
+      tags:
+        - admin
+      operationId: updateAdminUser
+      summary: Update a user through admin APIs
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - admin
+      operationId: deleteAdminUser
+      summary: Delete a user through admin APIs
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: User deleted
 
 components:
   schemas:

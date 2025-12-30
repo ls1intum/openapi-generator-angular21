@@ -4,6 +4,8 @@
  */
 package de.tum.cit.aet.openapi;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.languages.TypeScriptAngularClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
@@ -107,8 +109,6 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
 
         // Replace base generator supporting files with our template set only.
         supportingFiles.clear();
-        supportingFiles.add(new SupportingFile("index.mustache", "", "index.ts"));
-        supportingFiles.add(new SupportingFile("models-index.mustache", "models", "index.ts"));
 
         // Process custom options
         if (additionalProperties.containsKey(USE_HTTP_RESOURCE)) {
@@ -144,6 +144,43 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
     }
 
     @Override
+    public void processOpenAPI(OpenAPI openAPI) {
+        super.processOpenAPI(openAPI);
+
+        if (openapiGeneratorIgnoreList == null) {
+            openapiGeneratorIgnoreList = new HashSet<>();
+        }
+
+        Map<String, TagUsage> usageByTag = new HashMap<>();
+        if (openAPI != null && openAPI.getPaths() != null) {
+            openAPI.getPaths().forEach((path, pathItem) -> {
+                if (pathItem == null) {
+                    return;
+                }
+                addOperationUsage(pathItem.getGet(), true, usageByTag);
+                addOperationUsage(pathItem.getPost(), false, usageByTag);
+                addOperationUsage(pathItem.getPut(), false, usageByTag);
+                addOperationUsage(pathItem.getDelete(), false, usageByTag);
+                addOperationUsage(pathItem.getPatch(), false, usageByTag);
+                addOperationUsage(pathItem.getHead(), false, usageByTag);
+                addOperationUsage(pathItem.getOptions(), false, usageByTag);
+                addOperationUsage(pathItem.getTrace(), false, usageByTag);
+            });
+        }
+
+        for (Map.Entry<String, TagUsage> entry : usageByTag.entrySet()) {
+            String apiFilename = toApiFilename(entry.getKey());
+            TagUsage usage = entry.getValue();
+            if (!usage.hasMutation) {
+                openapiGeneratorIgnoreList.add("api/" + apiFilename + "-api.ts");
+            }
+            if (useHttpResource && separateResources && !usage.hasGet) {
+                openapiGeneratorIgnoreList.add("api/" + apiFilename + "-resources.ts");
+            }
+        }
+    }
+
+    @Override
     public String toModelFilename(String name) {
         // Use kebab-case for filenames without .model suffix (new Angular style guide)
         return toKebabCase(name);
@@ -158,6 +195,42 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
     @Override
     public String toApiName(String name) {
         return StringUtils.camelize(name) + "Api";
+    }
+
+    @Override
+    public String toOperationId(String operationId) {
+        String name = super.toOperationId(operationId);
+        String normalized = name.replaceFirst("^_+", "");
+        normalized = normalized.replaceFirst("\\d+$", "");
+        if (normalized.isBlank()) {
+            normalized = "operation";
+        }
+        return normalized;
+    }
+
+    private void addOperationUsage(Operation operation, boolean isGet, Map<String, TagUsage> usageByTag) {
+        if (operation == null) {
+            return;
+        }
+
+        List<String> tags = operation.getTags();
+        if (tags == null || tags.isEmpty()) {
+            tags = Collections.singletonList("default");
+        }
+        for (String tag : tags) {
+            String sanitizedTag = sanitizeTag(tag);
+            TagUsage usage = usageByTag.computeIfAbsent(sanitizedTag, key -> new TagUsage());
+            if (isGet) {
+                usage.hasGet = true;
+            } else {
+                usage.hasMutation = true;
+            }
+        }
+    }
+
+    private static final class TagUsage {
+        private boolean hasGet;
+        private boolean hasMutation;
     }
 
     @Override

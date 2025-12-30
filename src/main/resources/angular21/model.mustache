@@ -1,7 +1,10 @@
 {{>licenseInfo}}
-
 {{#models}}
 {{#model}}
+{{#tsImports}}
+import type { {{classname}} } from '{{filename}}';
+{{/tsImports}}
+
 {{#description}}
 /**
  * {{{.}}}
