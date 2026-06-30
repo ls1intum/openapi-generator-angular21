@@ -1,8 +1,13 @@
+import com.vanniktech.maven.publish.SonatypeHost
+import org.gradle.plugins.signing.Sign
+
 plugins {
     java
     `java-library`
-    `maven-publish`
-    signing
+    // Publishes signed artifacts to the Maven Central (Sonatype) Portal. Replaces the manual
+    // maven-publish + signing setup: it wires the sources/javadoc jars, the POM, GPG signing, and the
+    // Central Portal upload. See RELEASING.md for the required credentials and the release procedure.
+    id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
 group = "de.tum.cit.aet"
@@ -12,8 +17,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
     }
-    withJavadocJar()
-    withSourcesJar()
 }
 
 repositories {
@@ -63,48 +66,52 @@ tasks.withType<Jar> {
     }
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
+mavenPublishing {
+    // Upload to the Maven Central Portal (central.sonatype.com) and release automatically once the
+    // staged deployment validates. Consumers then resolve the artifact from plain mavenCentral() with
+    // no authentication.
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    // All artifacts must be GPG-signed for Maven Central. The signing key is provided via Gradle
+    // properties / environment variables in CI (see RELEASING.md); signing is skipped for
+    // publishToMavenLocal, so building from source needs no key.
+    signAllPublications()
 
-            pom {
-                name.set("OpenAPI Generator Angular 21")
-                description.set("Custom OpenAPI Generator for modern Angular 21 with httpResource and signals")
-                url.set("https://github.com/ls1intum/openapi-generator-angular21")
+    coordinates(group.toString(), "openapi-generator-angular21", version.toString())
 
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
+    pom {
+        name.set("OpenAPI Generator Angular 21")
+        description.set("Custom OpenAPI Generator for modern Angular 21 with httpResource and signals")
+        url.set("https://github.com/ls1intum/openapi-generator-angular21")
 
-                developers {
-                    developer {
-                        id.set("ls1intum")
-                        name.set("LS1 TUM")
-                        email.set("krusche@tum.de")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git:git://github.com/ls1intum/openapi-generator-angular21.git")
-                    developerConnection.set("scm:git:ssh://github.com/ls1intum/openapi-generator-angular21.git")
-                    url.set("https://github.com/ls1intum/openapi-generator-angular21")
-                }
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
-    }
 
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ls1intum/openapi-generator-angular21")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+        developers {
+            developer {
+                id.set("ls1intum")
+                name.set("LS1 TUM")
+                email.set("krusche@tum.de")
             }
         }
+
+        scm {
+            connection.set("scm:git:git://github.com/ls1intum/openapi-generator-angular21.git")
+            developerConnection.set("scm:git:ssh://github.com/ls1intum/openapi-generator-angular21.git")
+            url.set("https://github.com/ls1intum/openapi-generator-angular21")
+        }
     }
+}
+
+// Only sign when a signing key is configured — i.e. during a Central Portal release in CI, where the
+// SIGNING_KEY secret is provided as ORG_GRADLE_PROJECT_signingInMemoryKey. Building from source via
+// `./gradlew publishToMavenLocal` (the fallback consumers use to regenerate the client) needs no GPG
+// key: the local repository does not require signatures. The flag is read at configuration time so it
+// stays compatible with the configuration cache.
+val signingKeyPresent = providers.gradleProperty("signingInMemoryKey").isPresent
+tasks.withType<Sign>().configureEach {
+    onlyIf { signingKeyPresent }
 }

@@ -51,12 +51,18 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     
-    - name: Publish to GitHub Packages
-      run: ./gradlew publish
+    - name: Publish to Maven Central
+      # Uploads the signed artifacts to the Central Portal and (automaticRelease = true) releases them.
+      # Requires four repository secrets — see RELEASING.md:
+      #   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD : a Central Portal user token
+      #   SIGNING_KEY (ASCII-armored GPG private key) / SIGNING_PASSWORD : the signing key + passphrase
+      run: ./gradlew publishToMavenCentral --no-configuration-cache
       env:
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
+        ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+        ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+        ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
