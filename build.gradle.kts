@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "de.tum.cit.aet"
-version = "1.0.0"
+version = "1.1.0"
 
 java {
     toolchain {
@@ -23,7 +23,7 @@ repositories {
 val openapiGeneratorCli by configurations.creating
 
 dependencies {
-    val openapiGeneratorVersion = "7.18.0"
+    val openapiGeneratorVersion = "7.21.0"
 
     // OpenAPI Generator core dependency
     implementation("org.openapitools:openapi-generator:$openapiGeneratorVersion")

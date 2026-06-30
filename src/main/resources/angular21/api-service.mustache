@@ -17,7 +17,7 @@ export class {{classname}} {
 
 {{#operations}}
 {{#operation}}
-{{^vendorExtensions.x-is-get}}
+{{#vendorExtensions.x-render-in-service}}
     /**
      * {{summary}}
      * {{notes}}
@@ -61,26 +61,26 @@ export class {{classname}} {
 {{/isArray}}
         }
 {{/formParams}}
-        return this.http.{{httpMethod}}{{#returnType}}<{{{.}}}>{{/returnType}}(url, formData);
+        return this.http.{{httpMethod}}<{{#returnType}}{{{.}}}{{/returnType}}{{^returnType}}void{{/returnType}}>(url, formData);
 {{/hasFormParams}}
 {{^hasFormParams}}
 {{#bodyParam}}
-        return this.http.{{httpMethod}}{{#returnType}}<{{{.}}}>{{/returnType}}(url, {{paramName}});
+        return this.http.{{httpMethod}}<{{#returnType}}{{{.}}}{{/returnType}}{{^returnType}}void{{/returnType}}>(url, {{paramName}});
 {{/bodyParam}}
 {{^bodyParam}}
-{{#hasQueryParams}}
-        return this.http.{{httpMethod}}{{#returnType}}<{{{.}}}>{{/returnType}}(url);
-{{/hasQueryParams}}
-{{^hasQueryParams}}
-{{#vendorExtensions.x-is-mutation}}
-        return this.http.{{httpMethod}}{{#returnType}}<{{{.}}}>{{/returnType}}(url{{#isBodyAllowed}}, null{{/isBodyAllowed}});
-{{/vendorExtensions.x-is-mutation}}
-{{/hasQueryParams}}
+{{! POST/PUT/PATCH require a body argument even when the operation has none (pass null). }}
+{{! GET/DELETE take only the URL. Query parameters live in the URL, not the body. }}
+{{#vendorExtensions.x-needs-body-arg}}
+        return this.http.{{httpMethod}}<{{#returnType}}{{{.}}}{{/returnType}}{{^returnType}}void{{/returnType}}>(url, null);
+{{/vendorExtensions.x-needs-body-arg}}
+{{^vendorExtensions.x-needs-body-arg}}
+        return this.http.{{httpMethod}}<{{#returnType}}{{{.}}}{{/returnType}}{{^returnType}}void{{/returnType}}>(url);
+{{/vendorExtensions.x-needs-body-arg}}
 {{/bodyParam}}
 {{/hasFormParams}}
     }
 
-{{/vendorExtensions.x-is-get}}
+{{/vendorExtensions.x-render-in-service}}
 {{/operation}}
 {{/operations}}
 }

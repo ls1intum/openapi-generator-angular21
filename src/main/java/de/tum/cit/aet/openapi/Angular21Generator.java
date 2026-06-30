@@ -171,7 +171,10 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
         for (Map.Entry<String, TagUsage> entry : usageByTag.entrySet()) {
             String apiFilename = toApiFilename(entry.getKey());
             TagUsage usage = entry.getValue();
-            if (!usage.hasMutation) {
+            // In httpResource mode a GET-only tag has no mutations, so its API service file would be
+            // empty and is suppressed. In classical mode the GETs are rendered into the API service,
+            // so the file must be kept even when the tag has no mutations.
+            if (useHttpResource && !usage.hasMutation) {
                 openapiGeneratorIgnoreList.add("api/" + apiFilename + "-api.ts");
             }
             if (useHttpResource && separateResources && !usage.hasGet) {
@@ -265,6 +268,29 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
     public OperationsMap postProcessOperationsWithModels(OperationsMap objs, List<ModelMap> allModels) {
         OperationsMap result = super.postProcessOperationsWithModels(objs, allModels);
 
+        // Each model must be imported from its own file. The default `imports` entries do not carry a
+        // per-entry filename, so `{{classFilename}}` in the api templates falls through to the
+        // enclosing API's filename and every model is (wrongly) imported from the same path. Compute
+        // the correct model filename per import here.
+        Object importsObj = result.get("imports");
+        if (importsObj instanceof List<?> importsList) {
+            for (Object item : importsList) {
+                if (item instanceof Map<?, ?> rawImport) {
+                    Object className = rawImport.get("classname");
+                    if (className == null) {
+                        className = rawImport.get("import");
+                    }
+                    if (className != null) {
+                        String simpleName = className.toString();
+                        simpleName = simpleName.substring(simpleName.lastIndexOf('.') + 1);
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> mutableImport = (Map<String, Object>) rawImport;
+                        mutableImport.put("classFilename", toModelFilename(simpleName));
+                    }
+                }
+            }
+        }
+
         OperationMap operations = result.getOperations();
         List<CodegenOperation> ops = operations.getOperation();
 
@@ -276,7 +302,8 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
             // Add custom vendor extensions
             op.vendorExtensions.put("x-use-inject", useInjectFunction);
 
-            if ("GET".equalsIgnoreCase(op.httpMethod)) {
+            boolean isGet = "GET".equalsIgnoreCase(op.httpMethod);
+            if (isGet) {
                 op.vendorExtensions.put("x-is-get", true);
                 op.vendorExtensions.put("x-use-http-resource", useHttpResource);
                 getOperations.add(op);
@@ -285,6 +312,15 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
                 op.vendorExtensions.put("x-is-mutation", true);
                 mutationOperations.add(op);
             }
+
+            // A GET is rendered in the (classical) API service unless it is delegated to a
+            // signal-based httpResource. All non-GET operations always live in the API service.
+            op.vendorExtensions.put("x-render-in-service", !isGet || !useHttpResource);
+
+            // HttpClient.post/put/patch require a body argument (pass null when the operation has
+            // none); get/delete take only the URL. Independent of query params (those go in the URL).
+            String method = op.httpMethod == null ? "" : op.httpMethod.toUpperCase(Locale.ROOT);
+            op.vendorExtensions.put("x-needs-body-arg", method.equals("POST") || method.equals("PUT") || method.equals("PATCH"));
 
             // Process path parameters
             processPathParameters(op);
@@ -386,7 +422,10 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
             } else if (useSignalValue && signalValueByParamName.containsKey(valueVar)) {
                 replacementVar = signalValueByParamName.get(valueVar);
             }
-            String replacement = "{" + replacementVar + "}";
+            // Emit a template-literal interpolation (${...}); the surrounding template wraps the path
+            // in a `${this.basePath}...` template string. Without the leading $, non-numeric path
+            // params were rendered as literal "{paramPath}" text (and their encode const went unused).
+            String replacement = "${" + replacementVar + "}";
             matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(buffer);
@@ -400,8 +439,12 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
                 if (templateVarByParamName.containsKey(param.paramName)) {
                     valueVar = templateVarByParamName.get(param.paramName);
                 }
-                String placeholder = "{" + param.baseName + "}";
-                path = path.replace(placeholder, "${" + valueVar + "}");
+                // Fallback for any raw "{baseName}" placeholders not already turned into a
+                // template-literal interpolation by the encodeParam pass above. The negative
+                // lookbehind avoids matching the "{baseName}" inside an already-produced
+                // "${baseName}" (which would yield a doubled "$${baseName}").
+                String placeholder = "(?<!\\$)" + Pattern.quote("{" + param.baseName + "}");
+                path = path.replaceAll(placeholder, Matcher.quoteReplacement("${" + valueVar + "}"));
             }
         }
 
