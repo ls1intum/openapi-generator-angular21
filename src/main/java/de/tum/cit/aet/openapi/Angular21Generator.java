@@ -313,6 +313,19 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
                 mutationOperations.add(op);
             }
 
+            // Non-JSON GET responses need an explicit Angular HttpClient responseType. Without it the
+            // client defaults to responseType 'json' and tries to JSON.parse text/binary payloads
+            // (e.g. iCalendar files, CSV exports, plain-text tokens), which throws at runtime. A binary
+            // (Blob) return becomes responseType 'blob'; a string return whose produced media types are
+            // all text/* becomes responseType 'text'. JSON-string endpoints keep the default parser.
+            if (isGet) {
+                if ("Blob".equals(op.returnType)) {
+                    op.vendorExtensions.put("x-response-type", "blob");
+                } else if ("string".equals(op.returnType) && producesTextOnly(op)) {
+                    op.vendorExtensions.put("x-response-type", "text");
+                }
+            }
+
             // A GET is rendered in the (classical) API service unless it is delegated to a
             // signal-based httpResource. All non-GET operations always live in the API service.
             op.vendorExtensions.put("x-render-in-service", !isGet || !useHttpResource);
@@ -463,6 +476,24 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Whether the operation only produces text media types (e.g. text/plain, text/calendar, text/csv).
+     * Used to emit responseType: 'text' for string-returning GETs; JSON-string endpoints (which produce
+     * application/json) return false and keep the default JSON parser.
+     */
+    private boolean producesTextOnly(CodegenOperation op) {
+        if (op.produces == null || op.produces.isEmpty()) {
+            return false;
+        }
+        for (Map<String, String> mediaType : op.produces) {
+            String type = mediaType.get("mediaType");
+            if (type == null || !type.toLowerCase(Locale.ROOT).startsWith("text/")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
