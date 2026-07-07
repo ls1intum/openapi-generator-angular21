@@ -2,7 +2,7 @@
 {{#models}}
 {{#model}}
 {{#tsImports}}
-import type { {{classname}} } from '{{filename}}';
+import type { {{classname}} } from './{{filename}}';
 {{/tsImports}}
 
 {{#description}}
@@ -22,7 +22,7 @@ export interface {{classname}}{{#parent}} extends {{.}}{{/parent}} {
 {{#description}}
     /** {{{.}}} */
 {{/description}}
-{{#vendorExtensions.x-is-readonly}}    readonly {{/vendorExtensions.x-is-readonly}}{{^vendorExtensions.x-is-readonly}}    {{/vendorExtensions.x-is-readonly}}{{name}}{{^required}}?{{/required}}: {{#isEnum}}{{classname}}{{enumName}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#isNullable}} | null{{/isNullable}};
+{{#vendorExtensions.x-is-readonly}}    readonly {{/vendorExtensions.x-is-readonly}}{{^vendorExtensions.x-is-readonly}}    {{/vendorExtensions.x-is-readonly}}{{name}}{{^required}}?{{/required}}: {{#isEnum}}{{#isArray}}Array<{{/isArray}}{{classname}}{{enumName}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#isNullable}} | null{{/isNullable}};
 {{/vars}}
 }
 {{#hasEnums}}
