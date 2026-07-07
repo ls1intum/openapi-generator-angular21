@@ -134,7 +134,7 @@ plugins {
 
 dependencies {
     // Add as a dependency to the openapi generator
-    openapiGenerator("de.tum.cit.aet:openapi-generator-angular21:1.0.0")
+    openapiGenerator("de.tum.cit.aet:openapi-generator-angular21:1.1.0")
 }
 
 openApiGenerate {
@@ -160,7 +160,7 @@ plugins {
 
 dependencies {
     // Add as a dependency to the openapi generator
-    openapiGenerator 'de.tum.cit.aet:openapi-generator-angular21:1.0.0'
+    openapiGenerator 'de.tum.cit.aet:openapi-generator-angular21:1.1.0'
 }
 
 openApiGenerate {
@@ -205,7 +205,7 @@ openApiGenerate {
         <dependency>
             <groupId>de.tum.cit.aet</groupId>
             <artifactId>openapi-generator-angular21</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
     </dependencies>
 </plugin>
@@ -215,10 +215,10 @@ openApiGenerate {
 
 ```bash
 # Download the generator JAR
-wget https://github.com/ls1intum/openapi-generator-angular21/releases/download/v1.0.0/openapi-generator-angular21-1.0.0.jar
+wget https://github.com/ls1intum/openapi-generator-angular21/releases/download/v1.1.0/openapi-generator-angular21-1.1.0.jar
 
 # Generate code
-java -cp openapi-generator-angular21-1.0.0.jar:openapi-generator-cli-7.18.0.jar \
+java -cp openapi-generator-angular21-1.1.0.jar:openapi-generator-cli-7.18.0.jar \
     org.openapitools.codegen.OpenAPIGenerator generate \
     -g angular21 \
     -i openapi.yaml \
@@ -328,11 +328,15 @@ This generates Angular client code into `build/generated/example` using `example
 
 ## Publishing
 
-```bash
-# To GitHub Packages
-./gradlew publish
+The generator is published to **Maven Central**, so consumers resolve it from a plain `mavenCentral()`
+repository with no authentication. Releases are automated: pushing a `v*` tag runs the publish job in
+[`.github/workflows/build.yml`](.github/workflows/build.yml), which uploads the signed artifacts to the
+Central Portal. See **[RELEASING.md](RELEASING.md)** for the one-time account/secret setup and the full
+release procedure.
 
-# To Maven Local (for testing)
+```bash
+# Build the artifacts into your local Maven repository (no signing key required) — this is how
+# downstream projects (e.g. Artemis) build the generator from source to regenerate their client.
 ./gradlew publishToMavenLocal
 ```
 

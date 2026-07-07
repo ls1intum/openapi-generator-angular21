@@ -352,6 +352,29 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
 
         OperationsMap result = super.postProcessOperationsWithModels(objs, allModels);
 
+        // Each model must be imported from its own file. The default `imports` entries do not carry a
+        // per-entry filename, so `{{classFilename}}` in the api templates falls through to the
+        // enclosing API's filename and every model is (wrongly) imported from the same path. Compute
+        // the correct model filename per import here.
+        Object importsObj = result.get("imports");
+        if (importsObj instanceof List<?> importsList) {
+            for (Object item : importsList) {
+                if (item instanceof Map<?, ?> rawImport) {
+                    Object className = rawImport.get("classname");
+                    if (className == null) {
+                        className = rawImport.get("import");
+                    }
+                    if (className != null) {
+                        String simpleName = className.toString();
+                        simpleName = simpleName.substring(simpleName.lastIndexOf('.') + 1);
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> mutableImport = (Map<String, Object>) rawImport;
+                        mutableImport.put("classFilename", toModelFilename(simpleName));
+                    }
+                }
+            }
+        }
+
         OperationMap operations = result.getOperations();
         List<CodegenOperation> ops = operations.getOperation();
 
@@ -362,7 +385,8 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
         for (CodegenOperation op : ops) {
             op.vendorExtensions.put("x-use-inject", useInjectFunction);
 
-            if ("GET".equalsIgnoreCase(op.httpMethod)) {
+            boolean isGet = "GET".equalsIgnoreCase(op.httpMethod);
+            if (isGet) {
                 op.vendorExtensions.put("x-is-get", true);
                 op.vendorExtensions.put("x-use-http-resource", useHttpResource && separateResources);
                 op.vendorExtensions.put("x-inline-resource", useHttpResource && !separateResources);
@@ -371,6 +395,21 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
                 op.vendorExtensions.put("x-is-get", false);
                 op.vendorExtensions.put("x-is-mutation", true);
                 mutationOperations.add(op);
+            }
+
+            // Non-JSON GET responses need an explicit Angular HttpClient responseType. Without it the
+            // client defaults to responseType 'json' and tries to JSON.parse text/binary payloads
+            // (e.g. iCalendar files, CSV exports, plain-text tokens), which throws at runtime. A binary
+            // (Blob) return becomes responseType 'blob'; a string return whose produced media types are
+            // all text/* becomes responseType 'text'. JSON-string endpoints keep the default parser.
+            // File-download GETs (isResponseFile) are handled separately in the template with
+            // observe: 'response' so callers get the HttpResponse headers.
+            if (isGet) {
+                if ("Blob".equals(op.returnType)) {
+                    op.vendorExtensions.put("x-response-type", "blob");
+                } else if ("string".equals(op.returnType) && producesTextOnly(op)) {
+                    op.vendorExtensions.put("x-response-type", "text");
+                }
             }
 
             // Step 3 & 4: Process parameters
@@ -591,6 +630,24 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
             return true;
         }
         return "number".equals(param.dataType) || "number".equals(param.baseType) || "integer".equals(param.baseType);
+    }
+
+    /**
+     * Whether the operation only produces text media types (e.g. text/plain, text/calendar, text/csv).
+     * Used to emit responseType: 'text' for string-returning GETs; JSON-string endpoints (which produce
+     * application/json) return false and keep the default JSON parser.
+     */
+    private boolean producesTextOnly(CodegenOperation op) {
+        if (op.produces == null || op.produces.isEmpty()) {
+            return false;
+        }
+        for (Map<String, String> mediaType : op.produces) {
+            String type = mediaType.get("mediaType");
+            if (type == null || !type.toLowerCase(Locale.ROOT).startsWith("text/")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
