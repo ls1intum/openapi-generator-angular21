@@ -5,11 +5,11 @@ any other project — then resolve it from a plain `mavenCentral()` repository, 
 
 ```kotlin
 repositories { mavenCentral() }
-dependencies { /* openapiGenerator | classpath */ "de.tum.cit.aet:openapi-generator-angular21:1.1.0" }
+dependencies { /* openapiGenerator | classpath */ "de.tum.cit.aet:openapi-generator-angular22:1.0.0" }
 ```
 
 Publishing is automated by [`.github/workflows/build.yml`](.github/workflows/build.yml): pushing a tag
-that starts with `v` (e.g. `v1.1.0`) runs the `publish` job, which uploads the GPG-signed artifacts to
+that starts with `v` (e.g. `v1.0.0`) runs the `publish` job, which uploads the GPG-signed artifacts to
 the Central Portal via the [`com.vanniktech.maven.publish`](https://vanniktech.github.io/gradle-maven-publish-plugin/)
 plugin and (because `automaticRelease = true`) releases the deployment once it validates.
 

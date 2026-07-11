@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "de.tum.cit.aet"
-version = "1.1.0"
+version = "1.0.0"
 
 java {
     toolchain {
@@ -46,7 +46,7 @@ tasks.register<JavaExec>("generateExample") {
     mainClass.set("org.openapitools.codegen.OpenAPIGenerator")
     args(
         "generate",
-        "-g", "angular21",
+        "-g", "angular22",
         "-i", "example/example-openapi.yaml",
         "-o", "build/generated/example"
     )
@@ -76,12 +76,12 @@ mavenPublishing {
     // publishToMavenLocal, so building from source needs no key.
     signAllPublications()
 
-    coordinates(group.toString(), "openapi-generator-angular21", version.toString())
+    coordinates(group.toString(), "openapi-generator-angular22", version.toString())
 
     pom {
-        name.set("OpenAPI Generator Angular 21")
-        description.set("Custom OpenAPI Generator for modern Angular 21 with httpResource and signals")
-        url.set("https://github.com/ls1intum/openapi-generator-angular21")
+        name.set("OpenAPI Generator Angular 22")
+        description.set("Custom OpenAPI Generator for modern Angular 22 with httpResource and signals")
+        url.set("https://github.com/ls1intum/openapi-generator-angular22")
 
         licenses {
             license {
@@ -99,9 +99,9 @@ mavenPublishing {
         }
 
         scm {
-            connection.set("scm:git:git://github.com/ls1intum/openapi-generator-angular21.git")
-            developerConnection.set("scm:git:ssh://github.com/ls1intum/openapi-generator-angular21.git")
-            url.set("https://github.com/ls1intum/openapi-generator-angular21")
+            connection.set("scm:git:git://github.com/ls1intum/openapi-generator-angular22.git")
+            developerConnection.set("scm:git:ssh://github.com/ls1intum/openapi-generator-angular22.git")
+            url.set("https://github.com/ls1intum/openapi-generator-angular22")
         }
     }
 }

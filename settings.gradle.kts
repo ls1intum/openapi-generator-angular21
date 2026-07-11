@@ -1,1 +1,1 @@
-rootProject.name = "openapi-generator-angular21"
+rootProject.name = "openapi-generator-angular22"

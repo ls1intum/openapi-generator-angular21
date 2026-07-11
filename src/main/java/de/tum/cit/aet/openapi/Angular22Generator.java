@@ -22,7 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Custom OpenAPI Generator for Angular 21+ with modern best practices.
+ * Custom OpenAPI Generator for Angular 22+ with modern best practices.
  *
  * <p>This generator extends the default TypeScript Angular generator and produces
  * a clean, signal-based Angular client. It generates three types of files per API tag:</p>
@@ -53,12 +53,12 @@ import java.util.regex.Pattern;
  *   <li>Operation IDs: camelCase, stripped of leading underscores and trailing digits</li>
  * </ul>
  */
-public class Angular21Generator extends TypeScriptAngularClientCodegen {
+public class Angular22Generator extends TypeScriptAngularClientCodegen {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Angular21Generator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Angular22Generator.class);
 
     /** Generator name used by the OpenAPI Generator SPI and CLI. */
-    public static final String GENERATOR_NAME = "angular21";
+    public static final String GENERATOR_NAME = "angular22";
     /** Config option for enabling httpResource-based GET resources. */
     public static final String USE_HTTP_RESOURCE = "useHttpResource";
     /** Config option for enabling inject() instead of constructor injection. */
@@ -82,7 +82,7 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
     // =============================================================================================
 
     /**
-     * Initializes the Angular 21 generator with custom templates, naming conventions, and CLI options.
+     * Initializes the Angular 22 generator with custom templates, naming conventions, and CLI options.
      *
      * <p>Registers three template files:</p>
      * <ul>
@@ -92,7 +92,7 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
      *       conditionally added in {@link #processOpts()}</li>
      * </ul>
      */
-    public Angular21Generator() {
+    public Angular22Generator() {
         super();
 
         embeddedTemplateDir = templateDir = GENERATOR_NAME;
@@ -122,9 +122,9 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
     }
 
     /**
-     * Returns the unique identifier for this generator, used by the CLI ({@code -g angular21}).
+     * Returns the unique identifier for this generator, used by the CLI ({@code -g angular22}).
      *
-     * @return the generator name ({@code "angular21"})
+     * @return the generator name ({@code "angular22"})
      */
     @Override
     public String getName() {
@@ -138,7 +138,7 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
      */
     @Override
     public String getHelp() {
-        return "Generates Angular 21 client code with modern best practices including " +
+        return "Generates Angular 22 client code with modern best practices including " +
                 "httpResource for GET requests, inject() function, and signal-based reactivity.";
     }
 
@@ -185,7 +185,7 @@ public class Angular21Generator extends TypeScriptAngularClientCodegen {
             apiTemplateFiles.put("api-resource.mustache", "-resources.ts");
         }
 
-        LOGGER.info("Angular21 Generator initialized with: useHttpResource={}, useInjectFunction={}, " +
+        LOGGER.info("Angular22 Generator initialized with: useHttpResource={}, useInjectFunction={}, " +
                 "separateResources={}, readonlyModels={}",
                 useHttpResource, useInjectFunction, separateResources, readonlyModels);
     }

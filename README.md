@@ -1,9 +1,9 @@
-# OpenAPI Generator for Angular 21
+# OpenAPI Generator for Angular 22
 
-[![Build](https://github.com/ls1intum/openapi-generator-angular21/actions/workflows/build.yml/badge.svg)](https://github.com/ls1intum/openapi-generator-angular21/actions)
-[![Maven Central](https://img.shields.io/maven-central/v/de.tum.cit.aet/openapi-generator-angular21)](https://search.maven.org/artifact/de.tum.cit.aet/openapi-generator-angular21)
+[![Build](https://github.com/ls1intum/openapi-generator-angular22/actions/workflows/build.yml/badge.svg)](https://github.com/ls1intum/openapi-generator-angular22/actions)
+[![Maven Central](https://img.shields.io/maven-central/v/de.tum.cit.aet/openapi-generator-angular22)](https://search.maven.org/artifact/de.tum.cit.aet/openapi-generator-angular22)
 
-A custom [OpenAPI Generator](https://openapi-generator.tech/) for generating modern **Angular 21** TypeScript client code with best practices.
+A custom [OpenAPI Generator](https://openapi-generator.tech/) for generating modern **Angular 22** TypeScript client code with best practices.
 
 ## Features
 
@@ -134,11 +134,11 @@ plugins {
 
 dependencies {
     // Add as a dependency to the openapi generator
-    openapiGenerator("de.tum.cit.aet:openapi-generator-angular21:1.1.0")
+    openapiGenerator("de.tum.cit.aet:openapi-generator-angular22:1.0.0")
 }
 
 openApiGenerate {
-    generatorName.set("angular21")
+    generatorName.set("angular22")
     inputSpec.set("$projectDir/src/main/resources/openapi.yaml")
     outputDir.set("$buildDir/generated/openapi")
     
@@ -160,11 +160,11 @@ plugins {
 
 dependencies {
     // Add as a dependency to the openapi generator
-    openapiGenerator 'de.tum.cit.aet:openapi-generator-angular21:1.1.0'
+    openapiGenerator 'de.tum.cit.aet:openapi-generator-angular22:1.0.0'
 }
 
 openApiGenerate {
-    generatorName = 'angular21'
+    generatorName = 'angular22'
     inputSpec = "$projectDir/src/main/resources/openapi.yaml"
     outputDir = "$buildDir/generated/openapi"
     configOptions = [
@@ -189,7 +189,7 @@ openApiGenerate {
                 <goal>generate</goal>
             </goals>
             <configuration>
-                <generatorName>angular21</generatorName>
+                <generatorName>angular22</generatorName>
                 <inputSpec>${project.basedir}/src/main/resources/openapi.yaml</inputSpec>
                 <output>${project.build.directory}/generated-sources/openapi</output>
                 <configOptions>
@@ -204,7 +204,7 @@ openApiGenerate {
     <dependencies>
         <dependency>
             <groupId>de.tum.cit.aet</groupId>
-            <artifactId>openapi-generator-angular21</artifactId>
+            <artifactId>openapi-generator-angular22</artifactId>
             <version>1.1.0</version>
         </dependency>
     </dependencies>
@@ -215,12 +215,12 @@ openApiGenerate {
 
 ```bash
 # Download the generator JAR
-wget https://github.com/ls1intum/openapi-generator-angular21/releases/download/v1.1.0/openapi-generator-angular21-1.1.0.jar
+wget https://github.com/ls1intum/openapi-generator-angular22/releases/download/v1.1.0/openapi-generator-angular22-1.1.0.jar
 
 # Generate code
-java -cp openapi-generator-angular21-1.1.0.jar:openapi-generator-cli-7.18.0.jar \
+java -cp openapi-generator-angular22-1.1.0.jar:openapi-generator-cli-7.18.0.jar \
     org.openapitools.codegen.OpenAPIGenerator generate \
-    -g angular21 \
+    -g angular22 \
     -i openapi.yaml \
     -o ./generated
 ```
@@ -313,8 +313,8 @@ export class CourseListComponent {
 ## Building from Source
 
 ```bash
-git clone https://github.com/ls1intum/openapi-generator-angular21.git
-cd openapi-generator-angular21
+git clone https://github.com/ls1intum/openapi-generator-angular22.git
+cd openapi-generator-angular22
 ./gradlew build
 ```
 
