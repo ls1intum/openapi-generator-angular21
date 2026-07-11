@@ -31,27 +31,30 @@ These steps are done **once** by a maintainer/org admin; afterwards every releas
 In the Central Portal → *Account* → *Generate User Token*. This yields a username/password pair used
 for the upload (it is **not** your login password).
 
-### 3. Create a GPG signing key
+### 3. GPG signing key — reuse the shared `ls1intum` org key
 
-```bash
-gpg --gen-key                                   # create a key for the maintainer/CI identity
-gpg --list-secret-keys --keyid-format=long      # note the key id
-# Publish the public key so Central can verify signatures:
-gpg --keyserver keyserver.ubuntu.com --send-keys <KEY_ID>
-# Export the private key in the ASCII-armored form the plugin expects:
-gpg --armor --export-secret-keys <KEY_ID>       # the whole block, including the BEGIN/END lines
-```
+The GPG signing key is **not** repo-specific: this repo reuses the organisation-level secrets
+`GPG_KEY` (ASCII-armored private key) and `GPG_PASSPHRASE`, the same key Helios and the other
+`ls1intum` publishers sign with (`ls1intum/Helios/.github/workflows/release-maven.yml` is the
+reference). An org owner grants a new repo access under
+`Organization → Settings → Secrets and variables → Actions → GPG_KEY / GPG_PASSPHRASE → Repository access`
+(or `gh api -X PUT orgs/ls1intum/actions/secrets/GPG_KEY/repositories/<repo_id>`).
 
-### 4. Add four GitHub Actions repository secrets
+Only create a fresh key if you deliberately want a separate signing identity (`gpg --gen-key`, publish
+the public key to a keyserver, export it with `gpg --armor --export-secret-keys <KEY_ID>`, and store it
+as repo secrets instead).
 
+### 4. Add the two Central Portal secrets
+
+The **Central Portal auth** is repo-specific (a token for the `de.tum.cit.aet` namespace). Add it under
 `Settings → Secrets and variables → Actions → New repository secret`:
 
-| Secret                   | Value                                                              |
-|--------------------------|-------------------------------------------------------------------|
-| `MAVEN_CENTRAL_USERNAME` | Central Portal user-token **username**                            |
-| `MAVEN_CENTRAL_PASSWORD` | Central Portal user-token **password**                            |
-| `SIGNING_KEY`            | the full ASCII-armored GPG **private** key from step 3            |
-| `SIGNING_PASSWORD`       | the passphrase for that key                                       |
+| Secret                   | Scope | Value                                                     |
+|--------------------------|-------|-----------------------------------------------------------|
+| `MAVEN_CENTRAL_USERNAME` | repo  | Central Portal user-token **username**                    |
+| `MAVEN_CENTRAL_PASSWORD` | repo  | Central Portal user-token **password**                    |
+| `GPG_KEY`                | org   | shared ASCII-armored GPG **private** key (granted, step 3)|
+| `GPG_PASSPHRASE`         | org   | passphrase for that key (granted, step 3)                 |
 
 The workflow maps these onto the Gradle properties the plugin reads
 (`ORG_GRADLE_PROJECT_mavenCentralUsername`, `…Password`, `…signingInMemoryKey`, `…signingInMemoryKeyPassword`).

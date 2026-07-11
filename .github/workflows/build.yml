@@ -53,15 +53,15 @@ jobs:
     
     - name: Publish to Maven Central
       # Uploads the signed artifacts to the Central Portal and (automaticRelease = true) releases them.
-      # Requires four repository secrets — see RELEASING.md:
-      #   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD : a Central Portal user token
-      #   SIGNING_KEY (ASCII-armored GPG private key) / SIGNING_PASSWORD : the signing key + passphrase
+      # Central Portal auth comes from this repo's own secrets (a de.tum.cit.aet Central Portal user
+      # token); the GPG signing key is the shared ls1intum org secret (GPG_KEY / GPG_PASSPHRASE, granted
+      # to this repo), matching the Helios release-maven.yml convention. See RELEASING.md.
       run: ./gradlew publishToMavenCentral --no-configuration-cache
       env:
         ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
         ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-        ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
-        ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+        ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
+        ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
