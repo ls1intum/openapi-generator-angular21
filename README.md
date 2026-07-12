@@ -205,7 +205,7 @@ openApiGenerate {
         <dependency>
             <groupId>de.tum.cit.aet</groupId>
             <artifactId>openapi-generator-angular22</artifactId>
-            <version>1.1.0</version>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 </plugin>
@@ -215,10 +215,10 @@ openApiGenerate {
 
 ```bash
 # Download the generator JAR
-wget https://github.com/ls1intum/openapi-generator-angular22/releases/download/v1.1.0/openapi-generator-angular22-1.1.0.jar
+wget https://github.com/ls1intum/openapi-generator-angular22/releases/download/v1.0.0/openapi-generator-angular22-1.0.0.jar
 
 # Generate code
-java -cp openapi-generator-angular22-1.1.0.jar:openapi-generator-cli-7.18.0.jar \
+java -cp openapi-generator-angular22-1.0.0.jar:openapi-generator-cli-7.18.0.jar \
     org.openapitools.codegen.OpenAPIGenerator generate \
     -g angular22 \
     -i openapi.yaml \
